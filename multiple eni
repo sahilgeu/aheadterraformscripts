@@ -1,0 +1,18 @@
+variable "private_ips" {
+  type    = list(string)
+  default = [
+    "172.31.16.10",
+    "172.31.16.11",
+    "172.31.16.12",
+    "172.31.16.13",
+    "172.31.16.14"
+  ]
+}
+
+resource "aws_network_interface" "example" {
+  count = 5
+
+  subnet_id       = "subnet-075774986d77c8893"
+  security_groups = ["sg-02c3e5b9feb10d0bc"]
+  private_ips     = [element(var.private_ips, count.index)]
+}
