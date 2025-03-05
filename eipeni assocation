@@ -1,0 +1,30 @@
+terraform {
+  backend "s3" {
+    bucket = "mysccccs"
+    key    = "june/terraform.tfstate"
+    region = "ap-south-1"
+  }
+}
+
+
+resource "aws_network_interface" "ex" {
+  subnet_id       = "subnet-075774986d77c8893"
+  security_groups = ["sg-02c3e5b9feb10d0bc"]
+  private_ips     = ["172.31.16.4"]
+}
+
+resource "aws_eip" "example" {
+  domain = "vpc"
+
+  tags = {
+    Name = "example-eip"
+  }
+}
+
+resource "aws_eip_association" "example" {
+  allocation_id      = aws_eip.example.id
+  network_interface_id = aws_network_interface.ex.id
+}
+
+~
+~
