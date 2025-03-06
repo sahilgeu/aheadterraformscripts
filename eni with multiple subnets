@@ -1,0 +1,49 @@
+provider "aws" {
+region = "ap-south-1"
+}
+
+
+# Map of Private IPs to Subnets
+variable "subnet_private_ip_map" {
+  type = map(string)
+  default = {
+    "172.31.16.10" = "subnet-075774986d77c8893"
+    "172.31.32.10" = "subnet-03b74f884b34b064b"
+    "172.31.0.10" = "subnet-02d9c2bf841001ee2"
+    "172.31.16.13" = "subnet-075774986d77c8893"
+}
+}
+
+# Extract private IPs from the map
+variable "private_ips" {
+  type    = list(string)
+  default = ["172.31.16.10", "172.31.32.10", "172.31.0.10", "172.31.16.13"]
+}
+
+resource "aws_network_interface" "example" {
+  count = length(var.private_ips)
+
+  subnet_id       = lookup(var.subnet_private_ip_map, var.private_ips[count.index])
+  security_groups = ["sg-0ea824f61d90c3936"]
+  private_ips     = [var.private_ips[count.index]]
+
+  tags = {
+    Name = "ENI-${var.private_ips[count.index]}"
+  }
+}
+
+resource "aws_eip" "example" {
+  count  = length(var.private_ips)
+  domain = "vpc"
+
+  tags = {
+    Name = "EIP-${var.private_ips[count.index]}"
+  }
+}
+
+resource "aws_eip_association" "example" {
+  count = length(var.private_ips)
+
+  allocation_id       = aws_eip.example[count.index].id
+  network_interface_id = aws_network_interface.example[count.index].id
+}
